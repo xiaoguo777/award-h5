@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" viewport-fit="cover">
+    <link rel="stylesheet" href="css/global.css">
+    <script src="./jquery.min.js"></script>
+    <script src="./windowOpen.js"></script>
+    <script>
+        (function (doc, win) {
+            var docEl = doc.documentElement,
+                resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+                recalc = function () {
+                    var clientWidth = docEl.clientWidth;
+                    if (!clientWidth) return;
+                    if (clientWidth >= 750) {
+                        docEl.style.fontSize = '100px';
+                    } else {
+                        docEl.style.fontSize = 100 * (clientWidth / 750) + 'px';
+                    }
+                };
+
+            if (!doc.addEventListener) return;
+            win.addEventListener(resizeEvt, recalc, false);
+            doc.addEventListener('DOMContentLoaded', recalc, false);
+        })(document, window);
+        document.onreadystatechange = function () {
+            if (document.readyState == "complete") {
+                var domwidth = document.documentElement.clientWidth;
+                var domheight = document.documentElement.clientHeight;
+                if (domwidth == 375 && domheight >= 720) {
+                    $("body").addClass("iphoneX");
+                }
+            }
+        }
+    </script>
+    <style>
+        a {
+            text-decoration: none;
+        }
+
+        body {
+            font-size: 0.24rem;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        html {
+            width: 100%;
+            height: 100%;
+        }
+
+        /*解决一像素边框变粗问题*/
+
+        .border-bottom {
+            position: relative;
+            border-top: none !important;
+        }
+
+        .border-bottom::after {
+            content: " ";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #e4e4e4;
+            -webkit-transform-origin: left bottom;
+            transform-origin: left bottom;
+        }
+
+        .iphoneX .box {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-size: 100%;
+        }
+
+        .box {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            max-height: 12.06rem;
+            position: relative;
+        }
+
+        .qrcode-box {
+            position: absolute;
+            top: 3.9rem;
+            left: 50%;
+            margin-left: -3.35rem;
+            width: 6.7rem;
+            height: 2.78rem;
+            background: url(images/p_bg.png) no-repeat center;
+            background-size: 100%;
+        }
+
+        .qrcode-box img {
+            width: 5.58rem;
+            height: 2.02rem;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-left: -2.79rem;
+            margin-top: -1.01rem;
+        }
+
+        img {
+            display: block
+        }
+
+        /* body {
+            background-color: #5e4674;
+        } */
+
+        #load {
+            text-align: center;
+        }
+
+        .qrcode-box {
+            display: none;
+        }
+
+        .ack-button {
+            background-color: #fd7068;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <div class="container">
+            <div class="qrcode-box">
+                <img id="erweima" src="" alt="">
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+   
+    function getImg() {
+        var url = window.location.href.split("?")[1].split("&")
+        var a = url[0].split("=")[1];
+        var b = url[1].split("=")[1];
+        var user = url[2].split("=")[1];
+        var token = url[3].split("=")[1];
+        
+        $.ajax({
+            type: "post",
+            contentType: "application/json",
+            url: "http://app.becomebff.net/bff/crm/film/retrieveTicketPage",
+            data: JSON.stringify({
+                a,
+                b,
+                user:user,
+                token:token
+            }),
+            dataType:"json",
+            success:callback
+        })
+    }
+    function callback(msg) {
+        console.log(msg)
+        if (msg.code == 200) {
+            var bgImg = msg.data.backgroundPic;
+            var erweimaUrl = msg.data.pictureUrl;
+            $('.qrcode-box').css('display', 'block')
+            $(".box").css({
+                'background': `url(${bgImg}) no-repeat 0 -1.6rem`,
+                'background-size': '100%'
+            });
+            $('#erweima').attr("src", erweimaUrl)
+        } else {
+            setTitle = 'WARNING';
+            setContents = msg.message;
+            setButton = '["OK"]';
+            $(this).openWindow(setTitle, setContents, setButton);
+        }
+
+    }
+
+    window.onload = getImg();
+</script>
+
+</html>
